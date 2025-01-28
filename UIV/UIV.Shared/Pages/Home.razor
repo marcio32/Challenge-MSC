@@ -1,0 +1,115 @@
+﻿@page "/"
+@inject IPlatformService PlatformService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject INotificationService NotificationService
+<PageTitle>Preguntas App</PageTitle>
+
+<h3>Responde a las preguntas:</h3>
+
+@foreach (var question in questions)
+{
+    <div>
+        <h5>@question.Enunciado</h5>
+        <button @onclick="() => ShowAnswer(question.Id, question.Respuesta)">Mostrar Respuesta</button>
+    </div>
+}
+
+<Modal IsVisible="@isModalVisible" IsVisibleChanged="@((value) => isModalVisible = value)" Title="Respuesta" Message="@modalMessage" />
+
+@code {
+    private bool isModalVisible = false;
+    private string modalMessage;
+    private QuestionViewModel _viewModel = new QuestionViewModel();
+    private ObservableCollection<Questions> questions;
+    protected override void OnInitialized()
+    {
+        
+        questions = _viewModel.Preguntas;
+    }
+
+    private async void ShowAnswer(int id, string respuesta)
+    {
+        var platform = PlatformService.GetPlatform();
+
+        switch (id)
+        {
+            case 1:
+                await JS.InvokeVoidAsync("alert", respuesta);
+                break;
+            case 2:
+                if (platform == "Web")
+                {
+                    var url = $"NewWindows?Respuesta={Uri.EscapeDataString(respuesta)}";
+                    await JS.InvokeVoidAsync("window.open", url, "_blank");
+                }
+                else if (platform == "Desktop")
+                {
+                    var url = $"NewWindows?Respuesta={Uri.EscapeDataString(respuesta)}";
+                    Navigation.NavigateTo(url, true);
+                }
+
+                else if (platform == "Mobile")
+                {
+                    var url = $"NewWindows?Respuesta={Uri.EscapeDataString(respuesta)}";
+                    Navigation.NavigateTo(url);
+                }
+                break;
+            case 3:
+                if (platform == "Desktop" || platform == "Mobile")
+                {
+                    NotificationService?.ShowSnackbar(respuesta);
+                }
+                else if (platform == "Web")
+                {
+                    await ShowWebNotification(respuesta);
+                }
+                break;
+            case 4:
+                modalMessage = respuesta;
+                isModalVisible = true;
+                break;
+            default:
+                await JS.InvokeVoidAsync("alert", respuesta);
+                break;
+        }
+    }
+
+    private async Task ShowWebNotification(string message)
+    {
+        var isNotificationSupported = await JS.InvokeAsync<bool>("eval", "('Notification' in window)");
+
+        if (isNotificationSupported)
+        {
+            var permission = await JS.InvokeAsync<string>("eval", "Notification.permission");
+
+            if (permission == "granted")
+            {
+                await JS.InvokeVoidAsync("eval", $"new Notification('Pregunta Respondida', {{ body: '{message}' }})");
+            }
+            else if (permission == "default")
+            {
+                var result = await JS.InvokeAsync<string>("eval", "Notification.requestPermission()");
+
+                if (result == "granted")
+                {
+                    await JS.InvokeVoidAsync("eval", $"new Notification('Pregunta Respondida', {{ body: '{message}' }})");
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", "Las notificaciones fueron bloqueadas. Por favor, habilítelas para ver la respuesta.");
+                }
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Las notificaciones están deshabilitadas. Por favor, habilítelas para ver la respuesta.");
+            }
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", message);
+        }
+    }
+
+
+}

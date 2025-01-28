@@ -1,0 +1,18 @@
+﻿@page "/NewWindows"
+@inject NavigationManager Navigation
+<PageTitle>Respuesta</PageTitle>
+
+<h3>La Respuesta es:</h3>
+<p>@Respuesta</p>
+
+@code {
+    [Parameter] public string Respuesta { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Obtener el parámetro "respuesta" de la URL
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        Respuesta = queryParams["respuesta"];
+    }
+}
