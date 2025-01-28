@@ -24,3 +24,8 @@ La UI se ha creado utilizando **MAUI Hybrid**, que facilita la creación de apli
 - **.NET MAUI** para el desarrollo de la interfaz de usuario.
 - **.NET 9** para la ejecución de la aplicación.
 - **Visual Studio 2022** o superior con soporte para **.NET MAUI**.
+
+### Query SQL
+Se deja un enlace para descargar la Query
+- **https://drive.google.com/file/d/1-FxM1WUI0NFM4b8hV2PLqFmsUgaA0e6s/view?usp=sharing
+##La query esta preparada para ejecutarla completa, ademas de poder volver a ejecutarla N cantidad de veces.
